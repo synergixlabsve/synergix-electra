@@ -150,16 +150,13 @@ def webhook():
 
 # === Enviar mensaje por WhatsApp ===
 def send_whatsapp_message(to, text):
-    url = "https://waba.360dialog.io/v1/messages"
-    headers = {
-        "D360-API-KEY": os.environ.get('ACCESS_TOKEN'),
-        "Content-Type": "application/json"
-    }
+    url = "https://api.z-api.io/instances/3E4AB848C37E70F9F1F0EA8A4730038C/token/0EC520302220C2AA697FACC8/send-text"
     payload = {
-        "recipient_type": "individual",
-        "to": to,
-        "type": "text",
-        "text": {"body": text}
+        "phone": to,
+        "message": text
+    }
+    headers = {
+        "Content-Type": "application/json"
     }
     try:
         requests.post(url, json=payload, headers=headers)
