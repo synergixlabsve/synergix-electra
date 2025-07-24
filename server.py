@@ -1,29 +1,26 @@
 from flask import Flask, request, jsonify
 import requests
-import os
 
 app = Flask(__name__)
 
 # === CONFIGURACIÓN ===
 VERIFY_TOKEN = "synergix2025"
 
-# === WEBHOOK: Verificación (para Z-API) ===
+# === WEBHOOK: Verificación ===
 @app.route('/webhook', methods=['GET'])
 def verify_webhook():
     mode = request.args.get('hub.mode')
     token = request.args.get('hub.verify_token')
     challenge = request.args.get('hub.challenge')
-    
     if mode == "subscribe" and token == VERIFY_TOKEN:
         return challenge, 200
     else:
-        return "Forbidden", 403
+        return "Error", 403
 
-# === WEBHOOK: Recibir mensajes de Z-API ===
+# === WEBHOOK: Recibir mensajes ===
 @app.route('/webhook', methods=['POST'])
 def webhook():
     data = request.get_json()
-    
     if data and 'messages' in data:
         for msg in data['messages']:
             from_number = msg.get('from')
@@ -36,10 +33,10 @@ def webhook():
     return jsonify({'status': 'ok'}), 200
 
 # === RESPONDER según el mensaje recibido ===
-def responder(from_number, text):
+def responder(to, text):
     # Saludos
-    if any(word in text for word in ['hola', 'buenas', 'buenos', 'buen día', 'buenas tardes']):
-        send_whatsapp_message(from_number,
+    if any(word in text for word in ['hola', 'buenas', 'buenos', 'buen día']):
+        send_whatsapp_message(to,
             "¡Hola! Soy Electra, asistente virtual de Synergix Labs – Robótica y Electrónica.\n"
             "Ofrecemos cursos vacacionales 2025:\n\n"
             "🔌 *Electrónica Básica* (7-12 años) – Del 4 al 8 de agosto\n"
@@ -52,7 +49,7 @@ def responder(from_number, text):
 
     # Información general
     elif any(word in text for word in ['información', 'detalles', 'cursos', 'vacacional']):
-        send_whatsapp_message(from_number,
+        send_whatsapp_message(to,
             "📚 *Cursos Vacacionales 2025 – Synergix Labs*\n\n"
             "1. *Electrónica Básica* (7-12 años)\n"
             "   - Fechas: 4 al 8 de agosto\n"
@@ -72,7 +69,7 @@ def responder(from_number, text):
 
     # Precio
     elif any(word in text for word in ['costo', 'precio', 'cuánto cuesta', 'ref']):
-        send_whatsapp_message(from_number,
+        send_whatsapp_message(to,
             "📌 *Precios 2025*\n\n"
             "• Cada curso individual: Ref. 20\n"
             "• Plan completo (3 cursos): Ref. 55 (ahorro de Ref. 5)\n\n"
@@ -82,7 +79,7 @@ def responder(from_number, text):
 
     # Materiales
     elif any(word in text for word in ['materiales', 'necesito llevar', 'traer']):
-        send_whatsapp_message(from_number,
+        send_whatsapp_message(to,
             "📦 *Materiales en Synergix Labs*\n\n"
             "Todos los materiales prácticos (circuitos, placas, sensores) son proporcionados por nosotros.\n\n"
             "⚠️ Los proyectos se usan en clase y no se llevan a casa, pero si deseas conservar el tuyo, "
@@ -92,7 +89,7 @@ def responder(from_number, text):
 
     # Pago
     elif any(word in text for word in ['pago', 'pagar', 'dinero', 'cancelar', 'datos de pago']):
-        send_whatsapp_message(from_number,
+        send_whatsapp_message(to,
             "💳 *Opciones de pago en Synergix Labs*\n\n"
             "Puedes pagar por:\n"
             "• *Pago Móvil*\n"
@@ -110,7 +107,7 @@ def responder(from_number, text):
 
     # Python
     elif any(word in text for word in ['python', 'programación']):
-        send_whatsapp_message(from_number,
+        send_whatsapp_message(to,
             "🐍 *Curso de Programación con Python*\n\n"
             "Ideal para adolescentes de 12 a 17 años.\n"
             "📅 Del 18 al 22 de agosto\n"
@@ -126,7 +123,7 @@ def responder(from_number, text):
 
     # Confirmación de inscripción
     elif any(word in text for word in ['inscribir', 'registro', 'cupos', 'confirmar']):
-        send_whatsapp_message(from_number,
+        send_whatsapp_message(to,
             "📝 *¡Listo para inscribirte a Synergix Labs!* 😊\n\n"
             "Para reservar tu cupo en los cursos de verano 2025, por favor envía:\n\n"
             "1. Nombre del estudiante\n"
@@ -144,7 +141,7 @@ def responder(from_number, text):
 
     # Respuesta genérica
     else:
-        send_whatsapp_message(from_number,
+        send_whatsapp_message(to,
             "Gracias por tu mensaje. Un asesor (Gemmy León) se comunicará contigo en menos de 24 horas.\n"
             "📞 0414-8912730\n"
             "📧 synergixlabs@zohomail.com"
@@ -152,7 +149,6 @@ def responder(from_number, text):
 
 # === Enviar mensaje a través de Z-API ===
 def send_whatsapp_message(to, text):
-    # Usa la URL directa de Z-API con tu instancia y token
     url = "https://api.z-api.io/instances/3E4AB848C37E70F9F1F0EA8A4730038C/token/0EC520302220C2AA697FACC8/send-text"
     payload = {
         "phone": to,
@@ -167,4 +163,4 @@ def send_whatsapp_message(to, text):
         print("❌ Error al enviar mensaje:", str(e))
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
+    app.run(host='0.0.0.0', port=5000)
