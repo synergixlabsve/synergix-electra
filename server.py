@@ -13,10 +13,17 @@ def verify_webhook():
     mode = request.args.get('hub.mode')
     token = request.args.get('hub.verify_token')
     challenge = request.args.get('hub.challenge')
-    if mode == "subscribe" and token == VERIFY_TOKEN:
-        return challenge, 200
+
+    # Verifica si los parámetros existen
+    if mode == "subscribe" and challenge:
+        # Si el token coincide o si estamos en prueba, permite la verificación
+        if token == VERIFY_TOKEN:
+            return challenge, 200
+        else:
+            print("❌ Token incorrecto o faltante:", token)
+            return "Forbidden", 403
     else:
-        return "Error", 403
+        return "Bad Request", 400
 
 # === WEBHOOK: Recibir mensajes ===
 @app.route('/webhook', methods=['POST'])
