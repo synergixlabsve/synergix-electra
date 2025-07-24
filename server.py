@@ -70,18 +70,18 @@ def webhook():
 
 # === Enviar mensaje a través de Z-API ===
 def send_whatsapp_message(to, text):
-    # URL directa de Z-API con tu instancia y token
-    url = "https://api.z-api.io/instances/3E4AB848C37E70F9F1F0EA8A4730038C/token/0EC520302220C2AA697FACC8/send-text"
+    # Limpia el número: elimina @c.us si está presente
+    if '@' in to:
+        to = to.split('@')[0]
     
+    url = "https://api.z-api.io/instances/3E4AB848C37E70F9F1F0EA8A4730038C/token/0EC520302220C2AA697FACC8/send-text"
     payload = {
         "phone": to,
         "message": text
     }
-    
     headers = {
         "Content-Type": "application/json"
     }
-    
     try:
         response = requests.post(url, json=payload, headers=headers)
         if response.status_code == 200:
